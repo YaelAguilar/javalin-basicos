@@ -20,6 +20,9 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
+    // env
+    implementation("io.github.cdimascio:dotenv-java:3.0.0")
+
     // MySQL
     implementation(dependencyNotation = "mysql:mysql-connector-java:8.0.33")
 
