@@ -8,7 +8,6 @@ import org.example.exceptions.UnauthorizedException;
 import org.example.mappers.UserMapper;
 import org.example.models.User;
 import org.example.repositories.UserRepository;
-import org.example.repositories.impl.UserRepositoryImpl;
 import org.example.utils.JWTUtil;
 import java.util.Optional;
 
@@ -17,9 +16,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public AuthService() {
-        this.userRepository = new UserRepositoryImpl();
-        this.userMapper = new UserMapper();
+    public AuthService(UserRepository userRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
     /**

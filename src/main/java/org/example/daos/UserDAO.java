@@ -1,6 +1,7 @@
 package org.example.daos;
 
 import org.example.config.DatabaseConfig;
+import org.example.exceptions.DataAccessException;
 import org.example.models.User;
 import org.intellij.lang.annotations.Language;
 import java.sql.Connection;
@@ -35,9 +36,8 @@ public class UserDAO {
                     return Optional.of(user);
                 }
             }
-
         } catch (SQLException e) {
-            System.err.println("Error al buscar usuario: " + e.getMessage());
+            throw new DataAccessException("Error al buscar usuario por username: " + username, e);
         }
 
         return Optional.empty();

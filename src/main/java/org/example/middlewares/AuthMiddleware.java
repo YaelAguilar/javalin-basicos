@@ -6,28 +6,32 @@ import org.example.services.AuthService;
 import org.example.utils.JWTUtil;
 
 public class AuthMiddleware {
-    private final AuthService authService = new AuthService();
+    private final AuthService authService;
 
-    public final Handler requireAuth = ctx -> {
-        String authHeader = ctx.header("Authorization");
+    public AuthMiddleware(AuthService authService) {
+        this.authService = authService;
+    }
 
-        String token = JWTUtil.extractTokenFromHeader(authHeader);
+    public Handler requireAuth() {
+        return ctx -> {
+            String authHeader = ctx.header("Authorization");
+            String token = JWTUtil.extractTokenFromHeader(authHeader);
 
-        if (token == null) {
-            throw new UnauthorizedException("Token de autorización requerido. El formato debe ser 'Bearer <token>'.");
-        }
+            if (token == null) {
+                throw new UnauthorizedException("Token de autorización requerido. El formato debe ser 'Bearer <token>'.");
+            }
 
-        if (!authService.isTokenValid(token)) {
-            throw new UnauthorizedException("El token proporcionado es inválido o ha expirado.");
-        }
+            if (!authService.isTokenValid(token)) {
+                throw new UnauthorizedException("El token proporcionado es inválido o ha expirado.");
+            }
 
-        String username = authService.extractUsernameFromToken(token);
-        if (username == null) {
-            throw new UnauthorizedException("No se pudo extraer la identidad del usuario desde el token.");
-        }
+            String username = authService.extractUsernameFromToken(token);
+            if (username == null) {
+                throw new UnauthorizedException("No se pudo extraer la identidad del usuario desde el token.");
+            }
 
-        ctx.attribute("username", username);
-        ctx.attribute("token", token);
-
-    };
+            ctx.attribute("username", username);
+            ctx.attribute("token", token);
+        };
+    }
 }

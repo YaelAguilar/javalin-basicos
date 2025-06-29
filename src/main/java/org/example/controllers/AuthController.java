@@ -9,8 +9,8 @@ import java.util.Map;
 public class AuthController {
     private final AuthService authService;
 
-    public AuthController() {
-        this.authService = new AuthService();
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     public void login(Context ctx) {

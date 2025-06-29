@@ -8,8 +8,8 @@ import java.util.Optional;
 public class UserRepositoryImpl implements UserRepository {
     private final UserDAO userDAO;
 
-    public UserRepositoryImpl() {
-        this.userDAO = new UserDAO();
+    public UserRepositoryImpl(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     @Override
