@@ -15,9 +15,9 @@ public class AppConfig {
     public static final String JWT_SECRET_KEY = getRequiredEnv("JWT_SECRET_KEY");
 
     /**
-     * Obtiene una variable de entorno, primero del archivo .env y luego de las variables del sistema.
-     * Lanza una excepción si la variable no se encuentra en ninguna de las dos fuentes.
-     * @param key El nombre de la variable de entorno.
+     * Obtiene una variable de entorno, primero del archivo .env y luego de las variables del sistema,
+     * Lanza una excepción si la variable no se encuentra en ninguna de las dos fuentes,
+     * @param key El nombre de la variable de entorno,
      * @return El valor de la variable.
      * @throws RuntimeException si la variable no está definida.
      */
