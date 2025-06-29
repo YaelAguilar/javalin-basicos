@@ -4,11 +4,11 @@ import io.javalin.Javalin;
 import org.example.controllers.AuthController;
 import org.example.middlewares.AuthMiddleware;
 
-public class AuthRoutes implements Router {
+public class AuthenticationRoutes implements RouteHandler {
     private final AuthController authController;
     private final AuthMiddleware authMiddleware;
 
-    public AuthRoutes(AuthController authController, AuthMiddleware authMiddleware) {
+    public AuthenticationRoutes(AuthController authController, AuthMiddleware authMiddleware) {
         this.authController = authController;
         this.authMiddleware = authMiddleware;
     }
@@ -17,10 +17,8 @@ public class AuthRoutes implements Router {
     public void register(Javalin app) {
         app.post("/api/auth/login", authController::login);
 
+        // Logout requiere estar autenticado. Se aplica el middleware con .before()
         app.before("/api/auth/logout", authMiddleware.requireAuth());
-        app.before("/api/auth/profile", authMiddleware.requireAuth());
-
         app.post("/api/auth/logout", authController::logout);
-        app.get("/api/auth/profile", authController::profile);
     }
 }

@@ -3,6 +3,8 @@ package org.example.repositories.impl;
 import org.example.daos.UserDAO;
 import org.example.models.User;
 import org.example.repositories.UserRepository;
+
+import java.util.List;
 import java.util.Optional;
 
 public class UserRepositoryImpl implements UserRepository {
@@ -13,7 +15,22 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByUsername(String username) {
-        return userDAO.findByUsername(username);
+    public Optional<User> findByEmail(String email) {
+        return userDAO.findByEmail(email);
+    }
+
+    @Override
+    public Optional<User> findById(int id) {
+        return userDAO.findById(id);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return userDAO.findAll();
+    }
+
+    @Override
+    public User save(User user) {
+        return userDAO.save(user);
     }
 }

@@ -1,37 +1,51 @@
 package org.example.middlewares;
 
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.Handler;
 import org.example.exceptions.UnauthorizedException;
-import org.example.services.AuthService;
+import org.example.models.Role;
 import org.example.utils.JWTUtil;
 
 public class AuthMiddleware {
-    private final AuthService authService;
 
-    public AuthMiddleware(AuthService authService) {
-        this.authService = authService;
-    }
-
+    /**
+     * Middleware que verifica si un token es válido y pone los datos del usuario en el contexto.
+     */
     public Handler requireAuth() {
         return ctx -> {
             String authHeader = ctx.header("Authorization");
             String token = JWTUtil.extractTokenFromHeader(authHeader);
 
             if (token == null) {
-                throw new UnauthorizedException("Token de autorización requerido. El formato debe ser 'Bearer <token>'.");
+                throw new UnauthorizedException("Authorization token required. Format must be 'Bearer <token>'.");
+            }
+            if (!JWTUtil.isTokenValid(token)) {
+                throw new UnauthorizedException("The provided token is invalid or has expired.");
+            }
+            
+            Integer userId = JWTUtil.extractUserId(token);
+            Role userRole = JWTUtil.extractUserRole(token);
+
+            if (userId == null || userRole == null) {
+                throw new UnauthorizedException("Invalid token: could not extract user details.");
             }
 
-            if (!authService.isTokenValid(token)) {
-                throw new UnauthorizedException("El token proporcionado es inválido o ha expirado.");
-            }
+            ctx.attribute("userId", userId);
+            ctx.attribute("userRole", userRole);
+        };
+    }
 
-            String username = authService.extractUsernameFromToken(token);
-            if (username == null) {
-                throw new UnauthorizedException("No se pudo extraer la identidad del usuario desde el token.");
+    /**
+     * Middleware que verifica si el usuario tiene el rol de ADMIN.
+     * DEBE ejecutarse después de requireAuth().
+     */
+    public Handler requireAdmin() {
+        return ctx -> {
+            Role userRole = ctx.attribute("userRole");
+            if (userRole != Role.ADMIN) {
+                // Lanza una excepción específica de Javalin que resulta en un 403 Forbidden.
+                throw new ForbiddenResponse("Access Denied: Administrator role required.");
             }
-
-            ctx.attribute("username", username);
-            ctx.attribute("token", token);
         };
     }
 }

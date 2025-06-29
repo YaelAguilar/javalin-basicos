@@ -21,7 +21,6 @@ dependencies {
     // JSON Handling
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     implementation("com.fasterxml.jackson.core:jackson-core:2.15.2")
-    // FIX: ELIMINADA la línea de 'io.javalin:javalin-json' que ya no existe.
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     // JWT (JSON Web Token)
@@ -35,7 +34,7 @@ dependencies {
     // Database
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("com.zaxxer:HikariCP:5.0.1")
-
+    
     // Security
     implementation("at.favre.lib:bcrypt:0.10.2")
 
@@ -43,6 +42,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.assertj:assertj-core:3.24.2")
+    testRuntimeOnly("mysql:mysql-connector-java")
 }
 
 tasks.test {

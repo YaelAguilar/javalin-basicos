@@ -1,6 +1,6 @@
 package org.example.dtos.auth;
 
-import org.example.dtos.user.UserResponse;
+import org.example.dtos.user.UserDTO;
 
-public record LoginResponse(String token, UserResponse user) {
+public record LoginResponse(String token, UserDTO user) {
 }

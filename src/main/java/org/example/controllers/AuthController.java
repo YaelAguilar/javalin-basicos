@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import org.example.dtos.auth.LoginRequest;
 import org.example.dtos.auth.LoginResponse;
 import org.example.services.AuthService;
+import org.example.utils.JWTUtil;
 import java.util.Map;
 
 public class AuthController {
@@ -18,28 +19,14 @@ public class AuthController {
         LoginResponse loginResponse = authService.login(loginRequest);
         ctx.status(200).json(Map.of(
                 "success", true,
-                "message", "Login exitoso",
+                "message", "Login successful",
                 "data", loginResponse
         ));
     }
 
     public void logout(Context ctx) {
-        String token = ctx.attribute("token");
+        String token = JWTUtil.extractTokenFromHeader(ctx.header("Authorization"));
         authService.logout(token);
-        ctx.status(200).json(Map.of("success", true, "message", "Logout exitoso"));
-    }
-
-    public void profile(Context ctx) {
-        String username = ctx.attribute("username");
-
-        if (username == null) {
-            throw new IllegalStateException("El username no debería ser nulo en una ruta protegida.");
-        }
-
-        ctx.status(200).json(Map.of(
-                "success", true,
-                "message", "Perfil obtenido exitosamente",
-                "data", Map.of("username", username)
-        ));
+        ctx.status(200).json(Map.of("success", true, "message", "Logout successful"));
     }
 }

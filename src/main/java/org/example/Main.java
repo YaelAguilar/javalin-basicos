@@ -7,25 +7,53 @@ import io.javalin.json.JavalinJackson;
 import org.example.config.DatabaseConfig;
 import org.example.config.ExceptionHandlerConfig;
 import org.example.controllers.AuthController;
+import org.example.controllers.UserController;
 import org.example.daos.UserDAO;
 import org.example.mappers.UserMapper;
 import org.example.middlewares.AuthMiddleware;
 import org.example.repositories.UserRepository;
 import org.example.repositories.impl.UserRepositoryImpl;
-import org.example.routes.AuthRoutes;
-import org.example.routes.Router;
+import org.example.routes.AuthenticationRoutes;
+import org.example.routes.RouteHandler;
+import org.example.routes.UserRoutes;
 import org.example.services.AuthService;
+import org.example.services.UserService;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class Main {
 
+    public static boolean isTesting = false;
+
     public static void main(String[] args) {
-        List<Router> routers = buildRouters();
+        DatabaseConfig.init();
+        Javalin app = configureAndStartApp();
+        
+        if (!isTesting) {
+            setupShutdownHook(app);
+        }
 
+        System.out.println("Server started on http://localhost:8080");
+        System.out.println("Initial admin user: admin@system.com / admin123");
+    }
+    
+    public static Javalin configureAndStartApp() {
+        // --- Inyección de Dependencias ---
+        final UserDAO userDAO = new UserDAO();
+        final UserRepository userRepository = new UserRepositoryImpl(userDAO);
+        final UserMapper userMapper = new UserMapper();
+        final AuthService authService = new AuthService(userRepository, userMapper);
+        final UserService userService = new UserService(userRepository, userMapper);
+        final AuthMiddleware authMiddleware = new AuthMiddleware();
+        final AuthController authController = new AuthController(authService);
+        final UserController userController = new UserController(userService);
+        final List<RouteHandler> routeHandlers = List.of(
+                new AuthenticationRoutes(authController, authMiddleware),
+                new UserRoutes(userController, authMiddleware)
+        );
+
+        // --- Configuración de Javalin ---
         ObjectMapper jacksonMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
         Javalin app = Javalin.create(config -> {
             config.jsonMapper(new JavalinJackson(jacksonMapper, false));
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> {
@@ -33,54 +61,21 @@ public class Main {
                 it.allowCredentials = true;
                 it.exposeHeader("Authorization");
             }));
+
+            // EL BLOQUE PROBLEMÁTICO DE accessManager HA SIDO ELIMINADO.
         });
 
-        routers.forEach(router -> router.register(app));
+        routeHandlers.forEach(handler -> handler.register(app));
         ExceptionHandlerConfig.register(app);
 
-        try {
-            // Verificamos la conexión a la BD al inicio
-            DatabaseConfig.getConnection().close();
-        } catch (SQLException e) {
-            System.err.println("Error CRÍTICO al conectar con la base de datos al arrancar: " + e.getMessage());
-            return;
-        }
+        return app.start(8080);
+    }
 
+    private static void setupShutdownHook(Javalin app) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Cerrando aplicación...");
+            System.out.println("Closing application via shutdown hook...");
             DatabaseConfig.close();
             app.stop();
         }));
-
-        app.start(8080);
-
-        System.out.println("Servidor iniciado en http://localhost:8080");
-        System.out.println("Usuario inicial: admin / admin123");
-    }
-
-    /**
-     * @return Una lista de routers configurados con sus dependencias.
-     */
-    private static List<Router> buildRouters() {
-        // Capa de Datos
-        final UserDAO userDAO = new UserDAO();
-        final UserRepository userRepository = new UserRepositoryImpl(userDAO);
-
-        // Mappers
-        final UserMapper userMapper = new UserMapper();
-
-        // Capa de Servicios
-        final AuthService authService = new AuthService(userRepository, userMapper);
-
-        // Middlewares
-        final AuthMiddleware authMiddleware = new AuthMiddleware(authService);
-
-        // Controladores
-        final AuthController authController = new AuthController(authService);
-
-        // Rutas
-        return List.of(
-                new AuthRoutes(authController, authMiddleware)
-        );
     }
 }
